@@ -387,12 +387,13 @@ async function boot(): Promise<void> {
     }, 12000);
   }
 
-  for (const f of feedSprites) {
+  const feedIds = ["feed-1", "feed-2"];
+  for (const [i, f] of feedSprites.entries()) {
     tap(f, () => {
       dropFeed(f.position.x, f.position.y);
       for (const h of horses) {
         h.needs.hunger = Math.max(h.needs.hunger, 0.9);
-        h.goal = { stationId: "feed-1", kind: "feed", x: f.position.x, y: f.position.y + 60 };
+        h.goal = { stationId: feedIds[i], kind: "feed", x: f.position.x, y: f.position.y + 60 };
         h.actionT = 0;
         h.actionKind = null;
       }
