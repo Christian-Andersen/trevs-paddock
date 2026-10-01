@@ -2,16 +2,16 @@
 
 A 1-page Stardew-inspired 2D horse sim. Static frontend only, PixiJS canvas.
 
-- **Trev** (chestnut colt, cropped mane, halter) wanders the middle paddock
-  with Bramble and Willow (recolors). Water bowl top-left on the left
-  fence; trees line the top.
+- **Trev** (chestnut colt, cropped mane, halter) has the middle paddock to
+  himself. Water bowl top-left on the left fence; trees line the top.
 - Horses graze, visit the round bale, snack hard feed from black tubs, drink
   from the green bowl, rest at night, and think things in bubbles.
-- The neighbours (Jasper, Pip, Mabel, Rusty, Scout, Daisy) wander and graze
-  in the four surrounding paddocks. Everyone stays behind their own fences.
+- **Bramble and Willow** are in the paddock below Trev's. **Jasper, Pip, Mabel
+  and Rusty** share the wide paddock above, which has the metal shelters. The
+  two west paddocks are empty. Everyone stays behind their own fences.
 - Scroll to zoom (pinch too), drag to pan (camera follows Trev until you do;
   ◎ TREV resumes). Tap a horse to hear it and see its stats. Tap a tub /
-  bale / bowl to call Trev's herd.
+  bale / bowl to call Trev over.
 - Every horse tracks Sims-style stats — belly, water, rest, fun, social —
   plus treats, drinks, naps and distance wandered. Saved to local storage,
   so a refresh keeps everyone.
