@@ -23,19 +23,5 @@
       "groupName": "CI workflow actions",
       "groupSlug": "ci-workflow-actions"
     }
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "description": "Update the pnpm version pinned in flake.nix permittedInsecurePackages",
-      "managerFilePatterns": ["/(^|/)flake\\.nix$/"],
-      "matchStrings": [
-        "permittedInsecurePackages\\s*=\\s*\\[[^\\]]*\"pnpm-(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
-      ],
-      "depNameTemplate": "pnpm",
-      "packageNameTemplate": "pnpm",
-      "datasourceTemplate": "npm",
-      "versioningTemplate": "npm"
-    }
   ]
 }
