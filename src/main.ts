@@ -803,8 +803,8 @@ async function boot(): Promise<void> {
   sun.eventMode = "none";
   darkness.addChild(sun);
 
-  let nightLevel = 0;
-  // Redraws on resize too, so the gradient rect always covers the viewport.
+  // Called every frame and on resize; the shade rect is resized to match the
+  // viewport and the glow circles are re-stacked at the new light positions.
   function applySky() {
     const sky = skyAt(dayT);
     shade.width = app.screen.width;
@@ -857,7 +857,6 @@ async function boot(): Promise<void> {
       sun.circle(sx, sy, 20).fill({ color: 0xdfe6ff, alpha: 0.35 });
       sun.circle(sx, sy, 11).fill({ color: 0xf4f7ff, alpha: 0.7 });
     }
-    nightLevel = a;
     return sky;
   }
 
