@@ -1,7 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { decideGoal, phaseOf, thoughtFor, tickNeeds } from "../src/sim.ts";
-import { formatClock } from "../src/sim.ts";
+import { decideGoal, formatClock, phaseOf, thoughtFor, tickNeeds } from "../src/sim.ts";
 import type { Station } from "../src/sim.ts";
 
 const stations: Station[] = [
