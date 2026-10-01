@@ -22,9 +22,21 @@
         <div id="title">TREV'S PADDOCK</div>
         <div id="clock">☀ 07:55</div>
         <button id="follow" type="button" title="Follow Trev">◎ TREV</button>
-        <div id="hint">drag to pan · tap a horse · hold space = fast time</div>
+        <div id="hint">scroll to zoom · drag to pan · tap a horse · space = fast time</div>
       </div>
       <div id="thought" aria-live="polite"></div>
+      <div id="panel" class="hidden" aria-label="Horse stats">
+        <div id="panel-head">
+          <span id="panel-name">TREV</span>
+          <button id="panel-x" type="button" aria-label="Close stats">×</button>
+        </div>
+        <div class="mrow"><span>Belly</span><div class="meter"><i id="m-belly"></i></div></div>
+        <div class="mrow"><span>Water</span><div class="meter"><i id="m-water"></i></div></div>
+        <div class="mrow"><span>Rest</span><div class="meter"><i id="m-rest"></i></div></div>
+        <div class="mrow"><span>Fun</span><div class="meter"><i id="m-fun"></i></div></div>
+        <div class="mrow"><span>Social</span><div class="meter"><i id="m-social"></i></div></div>
+        <div id="panel-counts"></div>
+      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

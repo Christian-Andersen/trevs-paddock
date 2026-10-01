@@ -18,14 +18,76 @@ export interface Needs {
   boredom: number; // drives wander / visiting herd
 }
 
-export type Phase = "morning" | "midday" | "evening" | "night";
+export type Phase = "night" | "sunrise" | "morning" | "midday" | "evening" | "sunset" | "twilight";
+
+// Keyframes around the cycle, dayT 0 = 06:00. Breaks are the moments that
+// read differently to the eye; light is interpolated between them.
+// dayT 0 = 06:00, so the cycle runs sunrise -> night -> back to sunrise.
+// Ambient rises toward dawn at t=1.0 and is lowest at the middle of the night
+// key, which keeps the 1.0 -> 0.0 wrap seamless.
+// dayT 0 = 06:00, one full day = 24h, so 0.01 of dayT = 14.4 minutes. Key
+// times below are chosen so the clock reads correctly: sunrise ~06:00,
+// sunset ~18:00, twilight ~19:00, and full dark from ~20:00 until dawn.
+const SKY_KEYS: Array<{ t: number; phase: Phase; tint: number; ambient: number }> = [
+  { t: 0.0, phase: "sunrise", tint: 0xffb877, ambient: 0.38 }, //  06:00
+  { t: 0.042, phase: "morning", tint: 0xfff4e0, ambient: 0.08 }, //  07:00
+  { t: 0.21, phase: "midday", tint: 0xffffff, ambient: 0.0 }, //  11:00
+  { t: 0.375, phase: "midday", tint: 0xffffff, ambient: 0.0 }, //  15:00
+  { t: 0.458, phase: "evening", tint: 0xfff0d0, ambient: 0.08 }, //  17:00
+  { t: 0.5, phase: "sunset", tint: 0xff9a5c, ambient: 0.3 }, //  18:00
+  { t: 0.542, phase: "twilight", tint: 0x9a86c4, ambient: 0.46 }, //  19:00
+  { t: 0.583, phase: "night", tint: 0x6d7aa8, ambient: 0.6 }, //  20:00
+  { t: 0.79, phase: "night", tint: 0x5a689a, ambient: 0.66 }, //  01:00
+  { t: 0.92, phase: "night", tint: 0x66739f, ambient: 0.58 }, //  04:00
+  // Must equal the t=0 sunrise ambient exactly or the wrap pops.
+  { t: 1.0, phase: "sunrise", tint: 0xffb877, ambient: 0.38 }, //  06:00
+];
+
+const wrap01 = (v: number) => ((v % 1) + 1) % 1;
+
+export interface Sky {
+  phase: Phase;
+  /** Multiplicative tint applied to the whole world. */
+  tint: number;
+  /** 0 = full daylight, 1 = deepest night. Drives the dark overlay. */
+  ambient: number;
+}
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+// Interpolate the two neighbouring keyframes; night keys at both ends so the
+// wrap from 1.0 back to 0.0 stays continuous.
+export function skyAt(dayT: number): Sky {
+  const t = wrap01(dayT);
+  let prev = SKY_KEYS[SKY_KEYS.length - 1];
+  let next = SKY_KEYS[0];
+  for (let i = 0; i < SKY_KEYS.length - 1; i++) {
+    if (t >= SKY_KEYS[i].t && t <= SKY_KEYS[i + 1].t) {
+      prev = SKY_KEYS[i];
+      next = SKY_KEYS[i + 1];
+      break;
+    }
+  }
+  const span = next.t - prev.t || 1;
+  const f = (t - prev.t) / span;
+  const mix = (shift: number) => {
+    const r = lerp((prev.tint >> 16) & 255, (next.tint >> 16) & 255, f) + shift;
+    const g = lerp((prev.tint >> 8) & 255, (next.tint >> 8) & 255, f);
+    const b = lerp(prev.tint & 255, next.tint & 255, f);
+    const cl = (v: number) => Math.min(255, Math.max(0, Math.round(v)));
+    return (cl(r) << 16) | (cl(g) << 8) | cl(b);
+  };
+  return {
+    phase: f < 0.5 ? prev.phase : next.phase,
+    tint: mix(0),
+    ambient: lerp(prev.ambient, next.ambient, f),
+  };
+}
 
 export function phaseOf(dayT: number): Phase {
-  // dayT in [0,1): 0 dawn, 0.5 dusk-ish. Keep it simple and legible.
-  if (dayT < 0.25) return "morning";
-  if (dayT < 0.5) return "midday";
-  if (dayT < 0.75) return "evening";
-  return "night";
+  return skyAt(dayT).phase;
 }
 
 // Wall-clock for the HUD: dayT 0 = 06:00 dawn, so morning=06-12,
@@ -45,16 +107,20 @@ export interface Goal {
   y: number;
 }
 
+// Rest happens in the dark half: twilight through to the end of sunrise.
+function isDark(phase: Phase): boolean {
+  return phase === "night" || phase === "twilight" || phase === "sunrise";
+}
+
 export function tickNeeds(n: Needs, dtMin: number, phase: Phase): Needs {
   // dtMin: in-game minutes elapsed.
-  const hungerRate = phase === "night" ? 0.004 : 0.012;
+  const hungerRate = isDark(phase) ? 0.004 : 0.012;
   const thirstRate = phase === "midday" ? 0.02 : 0.01;
   const boredomRate = 0.008;
   const drain = (v: number, r: number) => Math.min(1, Math.max(0, v + r * dtMin));
-  const energy =
-    phase === "night"
-      ? Math.min(1, n.energy + 0.02 * dtMin)
-      : Math.max(0, n.energy - 0.004 * dtMin);
+  const energy = isDark(phase)
+    ? Math.min(1, n.energy + 0.02 * dtMin)
+    : Math.max(0, n.energy - 0.004 * dtMin);
   return {
     hunger: drain(n.hunger, hungerRate),
     thirst: drain(n.thirst, thirstRate),
@@ -86,8 +152,8 @@ export function decideGoal(
     return best;
   };
 
-  // Night: rest where you stand unless very thirsty.
-  if (phase === "night" && n.energy < 0.7 && n.thirst < 0.75) {
+  // After dark: rest where you stand unless very thirsty.
+  if (isDark(phase) && n.energy < 0.7 && n.thirst < 0.75) {
     return { stationId: null, kind: "rest", x: hx, y: hy };
   }
   // Urgent thirst beats everything.
@@ -139,4 +205,135 @@ const THOUGHTS: Record<string, string[]> = {
 export function thoughtFor(kind: Goal["kind"], rand: () => number = Math.random): string {
   const list = THOUGHTS[kind] ?? THOUGHTS.wander;
   return list[Math.floor(rand() * list.length)];
+}
+
+// --- fun stats: Sims-style meters + lifetime counters, persisted ---------
+
+export interface HorseStats {
+  fun: number; // 0..1, treats and snacks top it up
+  social: number; // 0..1, rises near other horses
+  treats: number; // hard-feed snacks eaten
+  drinks: number; // trips to the water bowl
+  naps: number; // rests finished
+  distance: number; // world px wandered
+}
+
+export function newStats(): HorseStats {
+  return { fun: 0.6, social: 0.6, treats: 0, drinks: 0, naps: 0, distance: 0 };
+}
+
+export function tickStats(s: HorseStats, dtMin: number, nearOthers: boolean): HorseStats {
+  const drift = (v: number, r: number) => Math.min(1, Math.max(0, v + r * dtMin));
+  return {
+    ...s,
+    fun: drift(s.fun, -0.004),
+    social: drift(s.social, nearOthers ? 0.03 : -0.01),
+  };
+}
+
+// Apply the payoff when a horse finishes an action.
+export function savourStats(s: HorseStats, kind: Goal["kind"]): HorseStats {
+  switch (kind) {
+    case "feed":
+      return { ...s, treats: s.treats + 1, fun: Math.min(1, s.fun + 0.35) };
+    case "hay":
+      return { ...s, fun: Math.min(1, s.fun + 0.2) };
+    case "graze":
+      return { ...s, fun: Math.min(1, s.fun + 0.1) };
+    case "water":
+      return { ...s, drinks: s.drinks + 1 };
+    case "rest":
+      return { ...s, naps: s.naps + 1 };
+    default:
+      return s;
+  }
+}
+
+// --- persistence: versioned, validated, safe to feed anything -------------
+
+export interface SavedHorse {
+  needs: Needs;
+  x: number;
+  y: number;
+  stats: HorseStats;
+}
+
+export interface SaveData {
+  v: 1;
+  dayT: number;
+  horses: Record<string, SavedHorse>;
+}
+
+export const SAVE_VERSION = 1;
+
+const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+function decodeNeeds(v: unknown): Needs | null {
+  if (typeof v !== "object" || v === null) return null;
+  const o = v as Record<string, unknown>;
+  if (!finite(o["hunger"]) || !finite(o["thirst"]) || !finite(o["energy"]) || !finite(o["boredom"]))
+    return null;
+  return {
+    hunger: clamp01(o["hunger"] as number),
+    thirst: clamp01(o["thirst"] as number),
+    energy: clamp01(o["energy"] as number),
+    boredom: clamp01(o["boredom"] as number),
+  };
+}
+
+function decodeStats(v: unknown): HorseStats | null {
+  if (typeof v !== "object" || v === null) return null;
+  const o = v as Record<string, unknown>;
+  if (
+    !finite(o["fun"]) ||
+    !finite(o["social"]) ||
+    !finite(o["treats"]) ||
+    !finite(o["drinks"]) ||
+    !finite(o["naps"]) ||
+    !finite(o["distance"])
+  )
+    return null;
+  return {
+    fun: clamp01(o["fun"] as number),
+    social: clamp01(o["social"] as number),
+    treats: Math.max(0, Math.floor(o["treats"] as number)),
+    drinks: Math.max(0, Math.floor(o["drinks"] as number)),
+    naps: Math.max(0, Math.floor(o["naps"] as number)),
+    distance: Math.max(0, o["distance"] as number),
+  };
+}
+
+export function encodeSave(
+  dayT: number,
+  horses: Array<{ name: string; x: number; y: number; needs: Needs; stats: HorseStats }>,
+): string {
+  const out: Record<string, SavedHorse> = {};
+  for (const h of horses) out[h.name] = { needs: h.needs, x: h.x, y: h.y, stats: h.stats };
+  const data: SaveData = { v: SAVE_VERSION, dayT, horses: out };
+  return JSON.stringify(data);
+}
+
+// Never throws: garbage in, null out. Out-of-range numbers are clamped.
+export function decodeSave(json: string): SaveData | null {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(json);
+  } catch {
+    return null;
+  }
+  if (typeof raw !== "object" || raw === null) return null;
+  const o = raw as Record<string, unknown>;
+  if (o["v"] !== SAVE_VERSION || !finite(o["dayT"])) return null;
+  if (typeof o["horses"] !== "object" || o["horses"] === null) return null;
+  const horses: Record<string, SavedHorse> = {};
+  for (const [name, entry] of Object.entries(o["horses"] as Record<string, unknown>)) {
+    if (typeof entry !== "object" || entry === null) return null;
+    const e = entry as Record<string, unknown>;
+    const needs = decodeNeeds(e["needs"]);
+    const stats = decodeStats(e["stats"]);
+    if (!needs || !stats || !finite(e["x"]) || !finite(e["y"])) return null;
+    horses[name] = { needs, x: e["x"] as number, y: e["y"] as number, stats };
+  }
+  return { v: 1, dayT: (((o["dayT"] as number) % 1) + 1) % 1, horses };
 }

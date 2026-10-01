@@ -139,3 +139,89 @@ body.portrait #thought .bubble,
 body.portrait #thought .who {
   transform: rotate(-90deg);
 }
+
+/* Stats card: stays upright + readable in both orientations. */
+#panel {
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 5;
+  width: 230px;
+  background: #20242af2;
+  border: 2px solid #ffe9b855;
+  border-radius: 14px;
+  padding: 10px 12px;
+  color: #fff;
+}
+
+#panel.hidden {
+  display: none;
+}
+
+#panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+#panel-name {
+  color: #ffe9b8;
+  font-weight: 800;
+  letter-spacing: 1px;
+  font-size: 14px;
+}
+
+#panel-x {
+  background: none;
+  border: none;
+  color: #fff9;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-family: inherit;
+}
+
+.mrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 3px 0;
+  font-size: 12px;
+}
+
+.mrow span {
+  width: 44px;
+  color: #fffc;
+}
+
+.meter {
+  flex: 1;
+  height: 10px;
+  background: #0009;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.meter i {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+}
+
+#panel-counts {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #fff9;
+  line-height: 1.5;
+}
+
+@media (orientation: portrait) {
+  #panel {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: max(10px, env(safe-area-inset-bottom));
+    width: min(330px, 86vw);
+  }
+}

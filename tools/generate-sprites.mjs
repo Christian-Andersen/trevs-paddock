@@ -2,8 +2,8 @@
 // No dependencies — pure Node + zlib, so `npm run sprites` works in nix develop.
 // Art direction: chunky pixels, design at low res, scale up in-game with NEAREST.
 
-import { writeFileSync, mkdirSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { deflateSync } from "node:zlib";
 
@@ -319,6 +319,78 @@ save("grass_dry.png", grass("#8BAE4E", "#75963E", "#A4C464", 555));
   cv.rect(2, 11, 20, 2, HAYD);
   for (let i = 0; i < 8; i++) cv.px(4 + i * 2, 5, HAYD);
   save("hay_flake.png", cv);
+}
+
+{
+  // round-canopy paddock tree (48x56)
+  const cv = makeCanvas(48, 56);
+  const TRUNK = hex("#5A4230");
+  const LEAF = hex("#2F5B2F");
+  const LEAFD = hex("#234422");
+  const LEAFL = hex("#4D8A4D");
+  cv.rect(22, 38, 4, 14, TRUNK);
+  cv.rect(21, 50, 6, 3, TRUNK);
+  cv.ellipse(24, 24, 18, 17, LEAFD);
+  cv.ellipse(22, 21, 14, 13, LEAF);
+  cv.ellipse(17, 25, 8, 8, LEAF);
+  cv.ellipse(31, 24, 8, 8, LEAF);
+  // highlight speckles
+  const HL = [
+    [16, 14],
+    [24, 10],
+    [31, 15],
+    [20, 20],
+    [28, 22],
+    [13, 24],
+    [35, 26],
+  ];
+  for (const [x, y] of HL) {
+    cv.px(x, y, LEAFL);
+    cv.px(x + 1, y, LEAFL);
+  }
+  save("tree.png", cv);
+}
+
+{
+  // metal field shelter / shed (96x64): posts, corrugated roof, shadow
+  const cv = makeCanvas(96, 64);
+  const METAL = hex("#9AA0A6");
+  const METALD = hex("#6E747A");
+  const METALL = hex("#CFD6DC");
+  const SHADE = hex("#4A5055");
+  // shadow on the ground
+  cv.ellipse(48, 58, 44, 8, [40, 46, 50, 90]);
+  // 4 posts
+  for (const px of [10, 34, 60, 84]) {
+    cv.rect(px, 34, 5, 24, METALD);
+    cv.rect(px, 34, 2, 24, METAL);
+  }
+  // back wall panel (shaded)
+  cv.rect(12, 38, 72, 20, SHADE);
+  // corrugated roof
+  cv.rect(2, 18, 92, 16, METALD);
+  cv.rect(2, 18, 92, 5, METALL);
+  for (let x = 4; x < 92; x += 6) cv.rect(x, 23, 2, 11, METALD);
+  cv.rect(0, 16, 96, 3, METALD);
+  save("shelter.png", cv);
+}
+
+{
+  // round bale (64x48): same hay spiral as the feeder, no metal ring
+  const cv = makeCanvas(64, 48);
+  const HAY = hex("#D7A84E");
+  const HAYD = hex("#B5893B");
+  const HAYL = hex("#E8C46A");
+  cv.ellipse(32, 24, 24, 17, HAYD);
+  cv.ellipse(32, 23, 24, 17, HAY);
+  cv.ellipse(32, 23, 13, 9, HAYD);
+  cv.ellipse(32, 22, 13, 9, HAY);
+  cv.ellipse(32, 22, 6, 4, HAYD);
+  for (let i = 0; i < 18; i++) {
+    const a = (i / 18) * Math.PI * 2;
+    cv.px(Math.round(32 + Math.cos(a) * (17 + (i % 3))), Math.round(22 + Math.sin(a) * (11 + (i % 2))), HAYL);
+  }
+  save("bale.png", cv);
 }
 
 console.log("done.");
