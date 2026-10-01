@@ -181,7 +181,9 @@ export function decideGoal(
   return { stationId: null, kind: "wander", x: hx + Math.cos(a) * r, y: hy + Math.sin(a) * r };
 }
 
-const THOUGHTS: Record<string, string[]> = {
+// Keyed by Goal["kind"], so a new goal kind that has no line is a type error
+// here rather than a silent fallback at runtime.
+const THOUGHTS: Record<Goal["kind"], string[]> = {
   wander: [
     "la la la",
     "nice grass today",
@@ -197,8 +199,7 @@ const THOUGHTS: Record<string, string[]> = {
 };
 
 export function thoughtFor(kind: Goal["kind"], rand: () => number = Math.random): string {
-  const list = THOUGHTS[kind] ?? THOUGHTS.wander;
-  return list[Math.floor(rand() * list.length)];
+  return THOUGHTS[kind][Math.floor(rand() * THOUGHTS[kind].length)];
 }
 
 // --- fun stats: Sims-style meters + lifetime counters, persisted ---------
