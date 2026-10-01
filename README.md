@@ -29,10 +29,10 @@ Deploy: `dist/` is published to Cloudflare Pages (see `.forgejo/workflows/ci.yml
 
 ## Layout
 
-- `index.html` — Vite entry, HUD, portrait gate
+- `index.html` — Vite entry, HUD, follow chip
 - `src/main.ts` — Pixi world, camera, horses, interaction
 - `src/sim.ts` — pure needs/schedule logic (tested, no Pixi import)
-- `src/style.css` — HUD + landscape gate
+- `src/style.css` — HUD + portrait-sideways rules
 - `tools/generate-sprites.mjs` — zero-dep pixel-art PNG generator → `public/assets/`
 - `tests/sim.test.ts` — `node --test` scheduling tests
 
