@@ -39,12 +39,16 @@ Deploy: `dist/` is published to Cloudflare Pages (see `.forgejo/workflows/ci.yml
 
 ## Layout
 
-- `index.html` — Vite entry, HUD, follow chip
-- `src/main.ts` — Pixi world, camera, horses, interaction
-- `src/sim.ts` — pure needs/schedule logic (tested, no Pixi import)
-- `src/style.css` — HUD + portrait-sideways rules
+- `index.html` — Vite entry, HUD, follow chip, stats panel
+- `src/main.ts` — Pixi world, camera, horses, day/night lighting, interaction
+- `src/sim.ts` — pure needs/schedule/stats/sky logic (tested, no Pixi import)
+- `src/style.css` — HUD, stats card, portrait-sideways rules
 - `tools/generate-sprites.mjs` — zero-dep pixel-art PNG generator → `public/assets/`
-- `tests/sim.test.ts` — `node --test` scheduling tests
+- `tests/sim.test.ts` — `node --test` covers scheduling, sky ramp and save codec
+
+The generated PNGs in `public/assets/` are build output but are also the
+committed art: `npm run build` regenerates them deterministically, so a diff
+there means the generator changed.
 
 ## Visual checking (feedback loop)
 
