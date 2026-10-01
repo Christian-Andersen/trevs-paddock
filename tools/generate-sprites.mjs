@@ -202,7 +202,10 @@ function grass(base, speck1, speck2, seed) {
   const S2 = hex(speck2);
   cv.rect(0, 0, 16, 16, B);
   let s = seed;
-  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const rnd = () => {
+    s = (s * 16807) % 2147483647;
+    return s / 2147483647;
+  };
   for (let i = 0; i < 26; i++) {
     const x = Math.floor(rnd() * 16);
     const y = Math.floor(rnd() * 16);
