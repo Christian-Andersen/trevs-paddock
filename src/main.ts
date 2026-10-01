@@ -383,11 +383,12 @@ async function boot(): Promise<void> {
 
   // Metal field shelters in the north paddock. Three along the top, plus one
   // in the bottom-left corner turned on the diagonal so it faces the corner.
-  for (const [sx, sy] of [
+  const shelterSpots: Array<[number, number]> = [
     [2100, 300],
     [2500, 300],
     [4200, 300],
-  ] as Array<[number, number]>) {
+  ];
+  for (const [sx, sy] of shelterSpots) {
     const sh = new Sprite(tex["shelter.png"]);
     sh.anchor.set(0.5, 0.9);
     sh.scale.set(2.2);
@@ -404,6 +405,7 @@ async function boot(): Promise<void> {
     corner.rotation = -Math.PI / 4;
     corner.position.set(PADDOCKS[0].x0 + 210, PADDOCKS[0].y1 - 150);
     actors.addChild(corner);
+    shelterSpots.push([corner.position.x, corner.position.y]);
   }
 
   const haySprite = addStationSprite(1940, 1340, "bale_feeder.png", 3, 3);
@@ -776,16 +778,14 @@ async function boot(): Promise<void> {
   // unaffected by zoom or the portrait rotation. A moon/sun marker rides
   // across the sky so you can see the time pass.
   const NIGHT_COLOR = 0x0a1030;
-  // World-space lantern positions: the shelter, the feeder, the ring feeder,
-  // and the water bowl. Warm barn light, so they read as lamps not floodlights.
+  // World-space lanterns, built from the real prop positions so a light
+  // cannot drift away from the shelter or tub it belongs to. Warm barn light
+  // on the shelters, feeder and ring feeder; the water bowl reads cooler.
   const LIGHTS: Array<[number, number, number, number]> = [
-    [2100, 300, 190, 0xffd9a0],
-    [2500, 300, 190, 0xffd9a0],
-    [4200, 300, 190, 0xffd9a0],
-    [1660, 780, 150, 0xffe3b0],
-    [1940, 1340, 170, 0xffe0aa],
-    [3100, 1770, 165, 0xffdcae],
-    [2610, 1130, 165, 0xcfe4ff],
+    ...shelterSpots.map(([x, y]): [number, number, number, number] => [x, y, 190, 0xffd9a0]),
+    [haySprite.position.x, haySprite.position.y, 170, 0xffe0aa],
+    [feedSprites[0].position.x, feedSprites[0].position.y, 165, 0xffdcae],
+    [waterSprite.position.x, waterSprite.position.y, 165, 0xcfe4ff],
   ];
   const darkness = new Graphics();
   darkness.eventMode = "none";
