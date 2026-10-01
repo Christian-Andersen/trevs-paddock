@@ -40,6 +40,9 @@ body {
   align-items: center;
   pointer-events: none;
   z-index: 3;
+  /* Keep the bar inside the viewport when the chips + hint do not fit:
+     #title, #clock and #follow are fixed-size, so only the hint may shrink. */
+  min-width: 0;
 }
 
 #title {
@@ -84,6 +87,12 @@ body {
 #hint {
   margin-left: auto;
   opacity: 0.9;
+  /* nowrap (set with #clock, #hint above) plus min-width:0 lets the flex item
+     shrink and ellipsis instead of pushing the bar past the viewport on a
+     narrow screen. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #thought {
