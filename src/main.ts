@@ -85,11 +85,10 @@ async function boot(): Promise<void> {
   function resize() {
     app.renderer.resize(window.innerWidth, window.innerHeight);
   }
-  window.addEventListener("resize", () => {
-    resize();
-    applySky();
-  });
+  window.addEventListener("resize", resize);
   resize();
+  // The sky listener is registered further down, once dayT and the shade
+  // layer exist — see the "day/night lighting" section.
 
   // Hold Space to fast-forward time (desktop). Tracks keys so the ticker
   // can scale the whole sim clock.
@@ -802,6 +801,12 @@ async function boot(): Promise<void> {
   const sun = new Graphics();
   sun.eventMode = "none";
   darkness.addChild(sun);
+
+  // Registered here, not next to the initial resize: a resize that lands
+  // while boot() is still loading textures would call applySky() before
+  // dayT and the shade layer are initialised, throwing a TDZ ReferenceError
+  // that silently kills the rest of boot.
+  window.addEventListener("resize", applySky);
 
   // Called every frame and on resize; the shade rect is resized to match the
   // viewport and the glow circles are re-stacked at the new light positions.
