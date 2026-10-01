@@ -38,6 +38,7 @@ const DAY_SECONDS = 300; // one full day
 const SCALE = 3;
 const ZMIN = 0.2;
 const ZMAX = 2.5;
+const NEAR_SOCIAL_PX = 300; // distance at which two horses count as together
 
 // Single source of truth for Trev's colourways: name, sprite rig and speed.
 // The roster below only adds where each horse lives.
@@ -1003,7 +1004,11 @@ async function boot(): Promise<void> {
 
     for (const h of horses) {
       h.needs = tickNeeds(h.needs, dtMin, phase);
-      const nearOthers = horses.some((o) => o !== h && Math.hypot(o.x - h.x, o.y - h.y) < 300);
+      // Roughly a paddock-width: close enough to be company, far enough that
+      // a horse across the field does not count as socialising.
+      const nearOthers = horses.some(
+        (o) => o !== h && Math.hypot(o.x - h.x, o.y - h.y) < NEAR_SOCIAL_PX,
+      );
       h.stats = tickStats(h.stats, dtMin, nearOthers);
 
       if (h.actionT > 0) {
