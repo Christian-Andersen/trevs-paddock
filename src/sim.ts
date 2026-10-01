@@ -20,14 +20,10 @@ export interface Needs {
 
 export type Phase = "night" | "sunrise" | "morning" | "midday" | "evening" | "sunset" | "twilight";
 
-// Keyframes around the cycle, dayT 0 = 06:00. Breaks are the moments that
-// read differently to the eye; light is interpolated between them.
-// dayT 0 = 06:00, so the cycle runs sunrise -> night -> back to sunrise.
-// Ambient rises toward dawn at t=1.0 and is lowest at the middle of the night
-// key, which keeps the 1.0 -> 0.0 wrap seamless.
-// dayT 0 = 06:00, one full day = 24h, so 0.01 of dayT = 14.4 minutes. Key
-// times below are chosen so the clock reads correctly: sunrise ~06:00,
-// sunset ~18:00, twilight ~19:00, and full dark from ~20:00 until dawn.
+// Keyframes around the cycle. dayT 0 = 06:00 and a full day = 24h, so 0.01 of
+// dayT is 14.4 minutes. Times are chosen so the clock reads correctly:
+// sunrise ~06:00, sunset ~18:00, twilight ~19:00, full dark from ~20:00.
+// The final key repeats the t=0 values exactly so the wrap is seamless.
 const SKY_KEYS: Array<{ t: number; phase: Phase; tint: number; ambient: number }> = [
   { t: 0.0, phase: "sunrise", tint: 0xffb877, ambient: 0.38 }, //  06:00
   { t: 0.042, phase: "morning", tint: 0xfff4e0, ambient: 0.08 }, //  07:00
@@ -72,16 +68,14 @@ export function skyAt(dayT: number): Sky {
   }
   const span = next.t - prev.t || 1;
   const f = (t - prev.t) / span;
-  const mix = (shift: number) => {
-    const r = lerp((prev.tint >> 16) & 255, (next.tint >> 16) & 255, f) + shift;
-    const g = lerp((prev.tint >> 8) & 255, (next.tint >> 8) & 255, f);
-    const b = lerp(prev.tint & 255, next.tint & 255, f);
-    const cl = (v: number) => Math.min(255, Math.max(0, Math.round(v)));
-    return (cl(r) << 16) | (cl(g) << 8) | cl(b);
-  };
+  const cl = (v: number) => Math.min(255, Math.max(0, Math.round(v)));
+  const tint =
+    (cl(lerp((prev.tint >> 16) & 255, (next.tint >> 16) & 255, f)) << 16) |
+    (cl(lerp((prev.tint >> 8) & 255, (next.tint >> 8) & 255, f)) << 8) |
+    cl(lerp(prev.tint & 255, next.tint & 255, f));
   return {
     phase: f < 0.5 ? prev.phase : next.phase,
-    tint: mix(0),
+    tint,
     ambient: lerp(prev.ambient, next.ambient, f),
   };
 }
