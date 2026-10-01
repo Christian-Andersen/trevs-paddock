@@ -15,12 +15,14 @@ A 1-page Stardew-inspired 2D horse sim. Static frontend only, PixiJS canvas.
 ## Run
 
 ```console
-just run      # vite dev server
-just build    # sprites + static build to dist/
-just check    # build + typecheck + prettier + prek (validates dist/index.html)
-just test     # unit tests for sim scheduling + rebuild guard
-just ci       # check then test (what CI runs)
-just audit    # npm audit, read-only
+just run      # vite dev server (npm start)
+just build    # sprites + tsc + static build to dist/
+just check    # fast gate: prek builtin + biome + tsc
+just manual   # everything check does, plus audit + unit tests
+just test     # unit tests for sim scheduling (via prek)
+just audit    # npm audit, read-only (via prek)
+just ci       # manual + build — what CI runs
+npm run fmt   # biome check --write over the repo
 ```
 
 Deploy: `dist/` is published to Cloudflare Pages (see `.forgejo/workflows/ci.yml`).

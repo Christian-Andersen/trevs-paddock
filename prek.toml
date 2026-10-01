@@ -1,0 +1,55 @@
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "check-added-large-files" },
+  { id = "mixed-line-ending" },
+  { id = "check-yaml" },
+  { id = "check-case-conflict" },
+  { id = "check-json" },
+  { id = "check-toml" },
+  { id = "check-xml" },
+  { id = "check-symlinks" },
+  { id = "check-merge-conflict" },
+  { id = "detect-private-key" },
+  { id = "check-executables-have-shebangs" },
+  { id = "fix-byte-order-marker" },
+  { id = "trailing-whitespace" },
+  { id = "end-of-file-fixer" },
+  { id = "check-illegal-windows-names" },
+  { id = "check-shebang-scripts-are-executable" },
+]
+
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "biome-check"
+name = "biome-check"
+language = "system"
+pass_filenames = false
+entry = "npx --no-install biome check --write src/"
+
+[[repos.hooks]]
+id = "tsc"
+name = "tsc"
+language = "system"
+pass_filenames = false
+entry = "npx --no-install tsc --noEmit"
+
+[[repos.hooks]]
+id = "audit"
+name = "audit"
+language = "system"
+pass_filenames = false
+always_run = true
+stages = ["manual"]
+entry = "npm audit"
+
+[[repos.hooks]]
+id = "test"
+name = "test"
+language = "system"
+pass_filenames = false
+always_run = true
+stages = ["manual"]
+entry = "npm test"

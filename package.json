@@ -6,21 +6,21 @@
   "description": "Trev's paddock — a 1-page Stardew-inspired 2D horse sim (PixiJS, static frontend).",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "start": "vite",
+    "build": "node tools/generate-sprites.mjs && tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "fmt": "prettier --write .",
-    "fmt-check": "prettier --check .",
+    "fmt": "biome check --write .",
     "test": "node --test --experimental-strip-types tests/sim.test.ts",
     "sprites": "node tools/generate-sprites.mjs"
   },
   "dependencies": {
-    "pixi.js": "^8.9.0"
+    "pixi.js": "^8.21.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
     "@types/node": "^26.6.3",
-    "prettier": "^3.3.3",
-    "typescript": "^5.6.3",
-    "vite": "^6.0.0"
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1"
   }
 }

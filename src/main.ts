@@ -1,13 +1,13 @@
-import { Application, Assets, Container, Graphics, Sprite, Texture } from "pixi.js";
+import { Application, Assets, Container, Graphics, Sprite, type Texture } from "pixi.js";
 import {
   decideGoal,
   formatClock,
-  phaseOf,
-  thoughtFor,
-  tickNeeds,
   type Goal,
   type Needs,
+  phaseOf,
   type Station,
+  thoughtFor,
+  tickNeeds,
 } from "./sim";
 import "./style.css";
 
@@ -78,7 +78,7 @@ async function boot(): Promise<void> {
 
   const base = import.meta.env.BASE_URL || "./";
   async function loadTex(name: string): Promise<Texture> {
-    const t = (await Assets.load(base + `assets/${name}`)) as Texture;
+    const t = (await Assets.load(`${base}assets/${name}`)) as Texture;
     const src = t.source as unknown as { scaleMode?: string };
     if (src) src.scaleMode = "nearest";
     return t;
@@ -128,7 +128,10 @@ async function boot(): Promise<void> {
   {
     const variants = ["grass_0.png", "grass_0.png", "grass_1.png", "grass_dry.png"];
     let seed = 42;
-    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const rnd = () => {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    };
     for (let i = 0; i < 260; i++) {
       const v = variants[Math.floor(rnd() * variants.length)];
       const s = new Sprite(tex[v]);
@@ -204,14 +207,7 @@ async function boot(): Promise<void> {
     { id: "water-1", kind: "water", x: 1200, y: 200 },
   ];
 
-  function addStationSprite(
-    kind: Station["kind"],
-    x: number,
-    y: number,
-    png: string,
-    sx = 3,
-    sy = 3,
-  ): Sprite {
+  function addStationSprite(x: number, y: number, png: string, sx = 3, sy = 3): Sprite {
     const s = new Sprite(tex[png]);
     s.anchor.set(0.5, 0.85);
     s.scale.set(sx, sy);
@@ -222,12 +218,12 @@ async function boot(): Promise<void> {
     return s;
   }
 
-  const haySprite = addStationSprite("hay", 1850, 1050, "bale_feeder.png", 3, 3);
+  const haySprite = addStationSprite(1850, 1050, "bale_feeder.png", 3, 3);
   const feedSprites = [
-    addStationSprite("feed", 620, 610, "feed_tub.png", 3, 3),
-    addStationSprite("feed", 720, 660, "feed_tub.png", 3, 3),
+    addStationSprite(620, 610, "feed_tub.png", 3, 3),
+    addStationSprite(720, 660, "feed_tub.png", 3, 3),
   ];
-  const waterSprite = addStationSprite("water", 1200, 190, "water_bowl.png", 3, 3);
+  const waterSprite = addStationSprite(1200, 190, "water_bowl.png", 3, 3);
   waterSprite.position.y = FENCE + 30;
 
   // graze markers: subtle darker tufts so goals read visually
@@ -350,10 +346,14 @@ async function boot(): Promise<void> {
   }
 
   function escapeHtml(s: string): string {
-    return s.replace(
-      /[&<>"']/g,
-      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
-    );
+    const ENTITIES: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return s.replace(/[&<>"']/g, (c) => ENTITIES[c] ?? c);
   }
 
   function onHorseTap(h: Horse) {
