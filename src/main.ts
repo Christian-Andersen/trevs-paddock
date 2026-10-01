@@ -590,19 +590,16 @@ async function boot(): Promise<void> {
   function showThought(h: Horse, text: string, secs = 4) {
     activeHorse = h;
     bubbleT = secs;
-    thoughtEl.innerHTML = `<div class="bubble">${escapeHtml(text)}</div><div class="who">${escapeHtml(h.name.toUpperCase())}</div>`;
+    // Built as DOM nodes with textContent rather than innerHTML: no escaping
+    // to get wrong, and a thought line can never inject markup.
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = text;
+    const who = document.createElement("div");
+    who.className = "who";
+    who.textContent = h.name.toUpperCase();
+    thoughtEl.replaceChildren(bubble, who);
     thoughtEl.classList.add("show");
-  }
-
-  function escapeHtml(s: string): string {
-    const ENTITIES: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
-    return s.replace(/[&<>"']/g, (c) => ENTITIES[c] ?? c);
   }
 
   function onHorseTap(h: Horse) {
