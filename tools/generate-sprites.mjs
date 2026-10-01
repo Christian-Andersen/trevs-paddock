@@ -244,8 +244,6 @@ save("grass_dry.png", grass("#8BAE4E", "#75963E", "#A4C464", 555));
 {
   // green hanging water bowl (side view over fence)
   const cv = makeCanvas(32, 24);
-  const T = [0, 0, 0, 0];
-  for (let i = 0; i < 32 * 24; i++) cv.data.set(T, i * 4);
   const BOWL = hex("#2E7D32");
   const BOWLD = hex("#1B5E20");
   const WATER = hex("#B2E5F2");
