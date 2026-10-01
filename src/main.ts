@@ -39,11 +39,15 @@ const SCALE = 3;
 const ZMIN = 0.2;
 const ZMAX = 2.5;
 
-const HERD = [
-  { name: "Trev", file: "trev", speed: 75 },
-  { name: "Bramble", file: "bramble", speed: 55 },
-  { name: "Willow", file: "willow", speed: 62 },
-];
+// Single source of truth for Trev's colourways: name, sprite rig and speed.
+// The roster below only adds where each horse lives.
+const HERD = {
+  Trev: { name: "Trev", file: "trev", speed: 75 },
+  Bramble: { name: "Bramble", file: "bramble", speed: 55 },
+  Willow: { name: "Willow", file: "willow", speed: 62 },
+};
+// Every distinct sprite rig, so the loader fetches each set exactly once.
+const HORSE_FILES = [...new Set(Object.values(HERD).map((h) => h.file))];
 
 const TREV_THOUGHTS = [
   "am I handsome? yes.",
@@ -135,13 +139,13 @@ async function boot(): Promise<void> {
   }
 
   const texNames: string[] = [];
-  for (const h of HERD) {
+  for (const file of HORSE_FILES) {
     texNames.push(
-      `${h.file}_walk0.png`,
-      `${h.file}_walk1.png`,
-      `${h.file}_idle.png`,
-      `${h.file}_graze.png`,
-      `${h.file}_drink.png`,
+      `${file}_walk0.png`,
+      `${file}_walk1.png`,
+      `${file}_idle.png`,
+      `${file}_graze.png`,
+      `${file}_drink.png`,
     );
   }
   texNames.push(
@@ -537,17 +541,28 @@ async function boot(): Promise<void> {
   }
 
   // Trev has the middle paddock to himself.
-  const trev = makeHorse("Trev", "trev", 75, 3290, 1890, trevBounds, trevStations, 4);
+  const trev = makeHorse(
+    HERD.Trev.name,
+    HERD.Trev.file,
+    HERD.Trev.speed,
+    3290,
+    1890,
+    trevBounds,
+    trevStations,
+    4,
+  );
 
   // Bramble and Willow live in the paddock directly below Trev's.
-  const southHerd = [
-    { name: "Bramble", file: "bramble", speed: 55, x: 3000, y: 2950 },
-    { name: "Willow", file: "willow", speed: 62, x: 2600, y: 2750 },
-  ].map((h, i) =>
+  const southHerd = (
+    [
+      { who: HERD.Bramble, x: 3000, y: 2950 },
+      { who: HERD.Willow, x: 2600, y: 2750 },
+    ] as const
+  ).map((h, i) =>
     makeHorse(
-      h.name,
-      h.file,
-      h.speed,
+      h.who.name,
+      h.who.file,
+      h.who.speed,
       h.x,
       h.y,
       paddockBounds("south"),
@@ -637,12 +652,12 @@ async function boot(): Promise<void> {
   function onHorseTap(h: Horse) {
     selected = h;
     const extra =
-      h.name === "Trev" && Math.random() < 0.4
+      h === trev && Math.random() < 0.4
         ? TREV_THOUGHTS[Math.floor(Math.random() * TREV_THOUGHTS.length)]
         : thoughtFor(h.goal.kind === "wander" ? "wander" : (h.actionKind ?? "wander"));
     showThought(h, extra, 5);
     // tapping Trev resumes the camera follow — he is the main character
-    if (h.name === "Trev") following = true;
+    if (h === trev) following = true;
   }
 
   function dropFeed(x: number, y: number) {
@@ -1046,7 +1061,7 @@ async function boot(): Promise<void> {
         h.musingT = 9 + Math.random() * 14;
         if (!activeHorse || bubbleT <= 0) {
           const line =
-            h.name === "Trev" && Math.random() < 0.35
+            h === trev && Math.random() < 0.35
               ? TREV_THOUGHTS[Math.floor(Math.random() * TREV_THOUGHTS.length)]
               : thoughtFor(h.actionKind ?? h.goal.kind);
           showThought(h, line, 3.5);
