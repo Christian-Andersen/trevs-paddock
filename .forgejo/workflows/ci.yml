@@ -27,4 +27,5 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
+          nix develop --command just build
           nix develop --command npx wrangler pages deploy ./dist --project-name=${{ forgejo.event.repository.name }} --commit-dirty=true
