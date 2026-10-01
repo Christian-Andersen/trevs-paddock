@@ -272,7 +272,7 @@ async function boot(): Promise<void> {
   const horses: Horse[] = HERD.map((h, i) => {
     const sprite = new Sprite(tex[`${h.file}_idle.png`]);
     sprite.anchor.set(0.5, 0.9);
-    sprite.scale.set(SCALE * 1, SCALE);
+    sprite.scale.set(SCALE, SCALE);
     sprite.eventMode = "static";
     sprite.cursor = "pointer";
     const x = 500 + i * 260;
