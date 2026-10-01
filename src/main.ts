@@ -645,9 +645,14 @@ async function boot(): Promise<void> {
 
   tap(haySprite, () => {
     trev.needs.hunger = Math.max(trev.needs.hunger, 0.8);
-    trev.goal = { stationId: "hay", kind: "hay", x: 1940, y: 1270 };
-    trev.actionT = 0;
-    trev.actionKind = null;
+    // Walk to the feeder's station, not a hand-picked spot: the old literal
+    // had drifted 120px above the ring and no longer lined up with it.
+    const hay = trevStations.find((st) => st.kind === "hay");
+    if (hay) {
+      trev.goal = { stationId: hay.id, kind: "hay", x: hay.x, y: hay.y };
+      trev.actionT = 0;
+      trev.actionKind = null;
+    }
     showThought(trev, "hay!! the good stuff", 4);
   });
 
