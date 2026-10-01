@@ -301,8 +301,7 @@ async function boot(): Promise<void> {
   function setHorseFrame(h: Horse) {
     let suffix = "idle.png";
     if (h.actionKind === "graze" || h.actionKind === "hay" || h.actionKind === "feed") {
-      suffix =
-        h.actionKind === "feed" ? "graze.png" : h.actionKind === "hay" ? "graze.png" : "graze.png";
+      suffix = "graze.png";
     } else if (h.actionKind === "water") {
       suffix = "drink.png";
     } else if (h.actionKind === "rest") {
