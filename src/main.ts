@@ -19,9 +19,9 @@ const DAY_SECONDS = 300; // one full day
 const SCALE = 3;
 
 const HERD = [
-  { name: "Trev", file: "trev", speed: 75, followsCamera: true },
-  { name: "Bramble", file: "bramble", speed: 55, followsCamera: false },
-  { name: "Willow", file: "willow", speed: 62, followsCamera: false },
+  { name: "Trev", file: "trev", speed: 75 },
+  { name: "Bramble", file: "bramble", speed: 55 },
+  { name: "Willow", file: "willow", speed: 62 },
 ];
 
 const TREV_THOUGHTS = [
