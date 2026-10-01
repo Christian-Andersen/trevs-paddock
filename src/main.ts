@@ -341,28 +341,29 @@ async function boot(): Promise<void> {
     { id: "water-1", kind: "water", x: 1600, y: 1150 },
   ];
   // Graze spots + a hay spot (round bale) for every neighbour paddock.
-  // PADDOCKS order is north, south, west, northwest — the west two stay empty.
-  const neighbourSpots: Station[][] = [
-    [
+  // Keyed by paddock id to match PADDOCKS; see paddock() below. The two
+  // west paddocks get stations and a bale but no horses.
+  const neighbourSpots: Record<string, Station[]> = {
+    north: [
       { id: "north-graze-a", kind: "graze", x: 3000, y: 600 },
       { id: "north-graze-b", kind: "graze", x: 2100, y: 400 },
       { id: "north-hay", kind: "hay", x: 4300, y: 560 },
     ],
-    [
+    south: [
       { id: "south-graze-a", kind: "graze", x: 3200, y: 2900 },
       { id: "south-graze-b", kind: "graze", x: 2000, y: 2700 },
       { id: "south-hay", kind: "hay", x: 2100, y: 3110 },
     ],
-    [
+    west: [
       { id: "west-graze-a", kind: "graze", x: 1000, y: 1900 },
       { id: "west-graze-b", kind: "graze", x: 500, y: 1400 },
       { id: "west-hay", kind: "hay", x: 800, y: 1810 },
     ],
-    [
+    northwest: [
       { id: "northwest-graze-a", kind: "graze", x: 800, y: 500 },
       { id: "northwest-hay", kind: "hay", x: 700, y: 710 },
     ],
-  ];
+  };
 
   function addStationSprite(x: number, y: number, png: string, sx = 3, sy = 3): Sprite {
     const s = new Sprite(tex[png]);
@@ -377,7 +378,9 @@ async function boot(): Promise<void> {
 
   // Round bales in every paddock, set just above each "hay" station so the
   // horse walks to the bale. Trev's is the one in the metal ring feeder.
-  for (const hay of neighbourSpots.flat().filter((s) => s.kind === "hay")) {
+  for (const hay of Object.values(neighbourSpots)
+    .flat()
+    .filter((s) => s.kind === "hay")) {
     addStationSprite(hay.x, hay.y - 40, "bale.png", 2.4, 2.4);
   }
 
@@ -403,7 +406,8 @@ async function boot(): Promise<void> {
     corner.anchor.set(0.5, 0.5);
     corner.scale.set(1.8);
     corner.rotation = -Math.PI / 4;
-    corner.position.set(PADDOCKS[0].x0 + 210, PADDOCKS[0].y1 - 150);
+    const north = paddock("north");
+    corner.position.set(north.x0 + 210, north.y1 - 150);
     actors.addChild(corner);
     shelterSpots.push([corner.position.x, corner.position.y]);
   }
@@ -418,7 +422,7 @@ async function boot(): Promise<void> {
   // graze markers: subtle darker tufts so goals read visually
   {
     const g = new Graphics();
-    for (const st of [...trevStations, ...neighbourSpots.flat()].filter(
+    for (const st of [...trevStations, ...Object.values(neighbourSpots).flat()].filter(
       (s) => s.kind === "graze",
     )) {
       g.ellipse(st.x, st.y, 90, 55).fill({ color: "#578a3b", alpha: 0.35 });
@@ -519,8 +523,16 @@ async function boot(): Promise<void> {
     return horse;
   }
 
-  function paddockBounds(i: number) {
-    const p = PADDOCKS[i];
+  // Look paddocks up by id rather than array index. Indexing meant the
+  // PADDOCKS order and the neighbourSpots order had to stay in lockstep, and
+  // reordering either would silently drop horses into the wrong field.
+  function paddock(id: string) {
+    const p = PADDOCKS.find((q) => q.id === id);
+    if (!p) throw new Error(`unknown paddock: ${id}`);
+    return p;
+  }
+  function paddockBounds(id: string) {
+    const p = paddock(id);
     return { x0: p.x0 + 40, y0: p.y0 + 100, x1: p.x1 - 40, y1: p.y1 - 90 };
   }
 
@@ -532,7 +544,16 @@ async function boot(): Promise<void> {
     { name: "Bramble", file: "bramble", speed: 55, x: 3000, y: 2950 },
     { name: "Willow", file: "willow", speed: 62, x: 2600, y: 2750 },
   ].map((h, i) =>
-    makeHorse(h.name, h.file, h.speed, h.x, h.y, paddockBounds(1), neighbourSpots[1], 6 + i * 5),
+    makeHorse(
+      h.name,
+      h.file,
+      h.speed,
+      h.x,
+      h.y,
+      paddockBounds("south"),
+      neighbourSpots["south"],
+      6 + i * 5,
+    ),
   );
 
   // The four horses above Trev, all in the north paddock. The two west
@@ -543,7 +564,16 @@ async function boot(): Promise<void> {
     { name: "Mabel", file: "trev", speed: 58, x: 3600, y: 640 },
     { name: "Rusty", file: "bramble", speed: 52, x: 4200, y: 500 },
   ].map((h, i) =>
-    makeHorse(h.name, h.file, h.speed, h.x, h.y, paddockBounds(0), neighbourSpots[0], 8 + i * 4),
+    makeHorse(
+      h.name,
+      h.file,
+      h.speed,
+      h.x,
+      h.y,
+      paddockBounds("north"),
+      neighbourSpots["north"],
+      8 + i * 4,
+    ),
   );
 
   const horses = [trev, ...southHerd, ...northHerd];
