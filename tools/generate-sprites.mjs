@@ -1,5 +1,5 @@
 // Generates Stardew-inspired pixel PNGs into public/assets/.
-// No dependencies — pure Node + zlib, so `npm run sprites` works in nix develop.
+// No dependencies — pure Node + zlib, so `npm run sprites` needs only Node.
 // Art direction: chunky pixels, design at low res, scale up in-game with NEAREST.
 
 import { mkdirSync, writeFileSync } from "node:fs";

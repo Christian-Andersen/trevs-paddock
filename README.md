@@ -31,11 +31,11 @@ just check    # fast gate: prek builtin + biome + tsc
 just manual   # everything check does, plus audit + unit tests
 just test     # unit tests for sim scheduling (via prek)
 just audit    # npm audit, read-only (via prek)
-just ci       # manual + build — what CI runs
+just ci       # manual + build — the full local gate
 npm run fmt   # biome check --write over the repo
 ```
 
-Deploy: `dist/` is published to Cloudflare Pages (see `.forgejo/workflows/ci.yml`).
+Deploy: `dist/` is published to Cloudflare Pages.
 
 ## Layout
 

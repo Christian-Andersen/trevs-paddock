@@ -1,7 +1,5 @@
 dist/
 node_modules/
-.direnv/
-result
 coverage/
 *.local
 .DS_Store
